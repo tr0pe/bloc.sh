@@ -1,15 +1,13 @@
 #!/bin/sh
 
-. "$(dirname "`command -v "$0"`")/config"
-
-mkdir -p $NOTES_FOLDER
+VIM_CONFIG='set textwidth=80'
 
 if [ -z "$1" ]; then
 	FILE=$NOTES_FOLDER/`date +%Y-%m-%d_%H-%M-%S`
-	$EDITOR "$FILE"
+	vim -c "$VIM_CONFIG" "$FILE"
 	if [ ! -f "$FILE" ]; then
 		exit
-	fi 
+	fi
 	echo -n "Enter a title for note: "
 	read -r TITLE
 
@@ -40,7 +38,7 @@ if [ -z "$1" ]; then
 fi
 
 if [ $1 = '-L' ]; then
-	$EDITOR "`find $NOTES_FOLDER -type f | sort -n | tail -n 1`"
+	vim -c "$VIM_CONFIG" "`find $NOTES_FOLDER -type f | sort -n | tail -n 1`"
 elif [ $1 = '-l' ]; then
 	if [ `tput lines` -gt `find $NOTES_FOLDER -type f | wc -l` ]; then
 		find $NOTES_FOLDER -type f | sort -n | sed -e s#"$NOTES_FOLDER/"#""#g | nl
@@ -63,7 +61,7 @@ elif [ $1 = '-o' ]; then
 		echo "Invalid index"
 		exit
 	fi
-	$EDITOR "`find $NOTES_FOLDER -type f | sort -n | head -n $2 | tail -n 1`"
+	vim -c "$VIM_CONFIG" "`find $NOTES_FOLDER -type f | sort -n | head -n $2 | tail -n 1`"
 elif [ $1 = '-d' ]; then
 	if [ $# != "2" ]; then
 		echo "'-d' option expects an argument"
@@ -92,7 +90,7 @@ elif [ $1 = '-d' ]; then
 		read DEL
 	done
 	if [ "$DEL" = 'y' ]; then
-		rm "$FILE"
+		shred -n 10 -zu "$FILE"
 		echo "Deleted"
 	fi
 elif [ $1 = '-r' ]; then
@@ -140,7 +138,7 @@ elif [ $1 = '-n' ]; then
 		echo "Invalid title"
 		exit
 	fi
-	$EDITOR "$FILE [ $2 ]"
+	vim -c "$VIM_CONFIG" "$FILE [ $2 ]"
 	if [ -f "$FILE [ $2 ]" ]; then
 		basename "$FILE [ $2 ]"
 	fi
@@ -156,7 +154,7 @@ elif [ $1 = '-p' ]; then
 elif [ $1 = '-h' ]; then
 	echo "bloc.sh: Simplest note manager"
 	echo " Notes directory: $NOTES_FOLDER"
-	echo " Editor: $EDITOR"
+	echo " Editor: vim -c "$VIM_CONFIG""
 	echo " Format: YYYY-MM-DD_HH-MM-SS [ TITLE ]"
 	echo " Options:"
 	echo "  -l                     List notes"
